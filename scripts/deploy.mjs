@@ -246,7 +246,11 @@ async function main() {
     "--body",
     state.publicUrl,
   ]);
-  run("git", ["push", "-u", "origin", "HEAD:main"]);
+  run("git", [
+    "-c", "credential.helper=",
+    "-c", "credential.helper=!gh auth git-credential",
+    "push", "-u", "origin", "HEAD:main",
+  ]);
   let workflow;
   for (let i = 0; i < 15; i++) {
     const rows = JSON.parse(
