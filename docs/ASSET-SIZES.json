@@ -1,0 +1,66 @@
+[
+  {
+    "name": "hero",
+    "bytes": 44132
+  },
+  {
+    "name": "card",
+    "bytes": 18524
+  },
+  {
+    "name": "wall",
+    "bytes": 30448
+  },
+  {
+    "name": "empty",
+    "bytes": 7222
+  },
+  {
+    "name": "success",
+    "bytes": 20094
+  },
+  {
+    "name": "og",
+    "bytes": 32436
+  },
+  {
+    "name": "avatar1",
+    "bytes": 4894
+  },
+  {
+    "name": "avatar2",
+    "bytes": 5030
+  },
+  {
+    "name": "avatar3",
+    "bytes": 4748
+  },
+  {
+    "name": "avatar4",
+    "bytes": 4046
+  },
+  {
+    "name": "avatar5",
+    "bytes": 5092
+  },
+  {
+    "name": "avatar6",
+    "bytes": 5064
+  },
+  {
+    "name": "avatar7",
+    "bytes": 5732
+  },
+  {
+    "name": "avatar8",
+    "bytes": 6374
+  },
+  {
+    "name": "avatar9",
+    "bytes": 5578
+  },
+  {
+    "name": "avatar10",
+    "bytes": 4778
+  }
+]

@@ -1,0 +1,42 @@
+{
+  "method": "Built-in image_gen",
+  "assets": [
+    [
+      "hero",
+      "Landscape 3:2 website hero illustration. A red open envelope holding a small bouquet of pink and soft yellow flowers and an ivory blank card, next to two closed gray and white books and a tiny green sprout. Off-white backdrop, generous empty space, arranged as an elegant central still life."
+    ],
+    [
+      "card",
+      "Portrait 4:5 greeting card background. Almost entirely clean white paper, tiny red and pale pink flowers with light grey leaves confined to bottom left and upper right corners. Central 80 percent completely blank white for long text added by code."
+    ],
+    [
+      "wall",
+      "Wide 16:9 projection background. Clean off-white space, extremely subtle semi-flat flowers and books at the far left and lower right edges only, center 85 percent blank. Restrained blush and cool gray accents."
+    ],
+    [
+      "empty",
+      "Square empty inbox illustration. One small light gray mailbox with a red flap and a green sprout beside it, small pale pink flower. White background, warm hopeful feeling, simple centered composition."
+    ],
+    [
+      "success",
+      "Square success illustration. A red envelope with a beautiful small pink flower blooming out of it, a few restrained pale yellow petals, clean white background, centered composition."
+    ],
+    [
+      "og",
+      "Wide 1.9:1 social sharing illustration. A beautiful red envelope with soft pink flowers, white blank cards, books and tiny green leaves. White backdrop, warm natural light, generous balanced negative space."
+    ]
+  ],
+  "avatars": [
+    "woman with short dark bob, red blouse",
+    "man with short wavy black hair, glasses, gray shirt",
+    "woman with tied back black hair, white blouse",
+    "man with side part black hair, red polo",
+    "woman with shoulder length dark hair, gray blazer",
+    "older man with salt and pepper hair, white shirt",
+    "woman with curly dark hair and glasses, pale pink top",
+    "man with cropped black hair, light gray sweater",
+    "woman with long black hair, white and red top",
+    "older woman with short gray hair, red cardigan"
+  ],
+  "constraints": "Semi-flat illustration, white/red/gray/pale pink, no text/logo/real person likeness."
+}

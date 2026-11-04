@@ -1,0 +1,41 @@
+{
+  "name": "nhung-dieu-tot-dep",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev:demo": "vite --mode demo --host 127.0.0.1",
+    "build:demo": "vite build --mode demo",
+    "build": "node scripts/build.mjs",
+    "test": "node --test tests/core.test.mjs tests/backend.test.mjs",
+    "test:e2e:demo": "playwright test",
+    "test:e2e:live": "node scripts/manage.mjs test-live",
+    "test:load": "node scripts/manage.mjs load",
+    "deploy": "node scripts/deploy.mjs",
+    "seed:demo": "node scripts/manage.mjs seed",
+    "clean:demo": "node scripts/manage.mjs clean",
+    "mod:password": "node scripts/manage.mjs password",
+    "qr": "node scripts/manage.mjs qr",
+    "reset:data": "node scripts/manage.mjs reset",
+    "teardown": "node scripts/manage.mjs teardown",
+    "check": "tsc --noEmit && npm run test"
+  },
+  "dependencies": {
+    "@fontsource/be-vietnam-pro": "5.2.8",
+    "bcryptjs": "3.0.2",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "@google/clasp": "3.4.1",
+    "@playwright/test": "1.56.1",
+    "@types/qrcode": "1.5.6",
+    "dotenv": "17.2.3",
+    "esbuild": "0.25.12",
+    "google-auth-library": "10.5.0",
+    "googleapis": "165.0.0",
+    "prettier": "3.6.2",
+    "sharp": "0.34.4",
+    "typescript": "5.9.3",
+    "vite": "7.2.2"
+  }
+}
