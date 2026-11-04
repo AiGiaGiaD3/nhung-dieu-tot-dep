@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import { createHash, createHmac, randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { build } from "esbuild";
+import { gzipSync, gunzipSync } from "node:zlib";
 const bundle = await build({
   entryPoints: ["backend/entry.mjs"],
   bundle: true,
@@ -19,7 +20,8 @@ const bundle = await build({
 function mock() {
   let cells = [],
     failure = false,
-    locked = false;
+    locked = false,
+    reads = 0;
   const p = new Map(),
     c = new Map(),
     files = new Map();
@@ -70,6 +72,8 @@ function mock() {
       base64Decode: (v) => [...Buffer.from(v, "base64")],
       base64Encode: (v) => Buffer.from(v).toString("base64"),
       newBlob: blob,
+      gzip: (b) => blob([...gzipSync(Buffer.from(b.getBytes()))]),
+      ungzip: (b) => blob([...gunzipSync(Buffer.from(b.getBytes()))]),
       getUuid: randomUUID,
     },
     SpreadsheetApp: {
@@ -96,7 +100,12 @@ function mock() {
     },
     Sheets: {
       Spreadsheets: {
-        Values: { get: () => ({ values: cells }) },
+        Values: {
+          get: () => {
+            reads++;
+            return { values: cells };
+          },
+        },
         batchUpdate: (body) => {
           if (failure) throw new Error("network failure");
           cells = body.requests
@@ -123,6 +132,8 @@ function mock() {
     fail: (v) => (failure = v),
     lock: (v) => (locked = v),
     properties: p,
+    cache: c,
+    reads: () => reads,
   };
 }
 test("real backend auth, one atomic write, signed sessions and forgery rejection", () => {
@@ -173,6 +184,40 @@ test("real backend auth, one atomic write, signed sessions and forgery rejection
     mod,
   );
   assert.throws(() => m.call("me", {}, auth));
+});
+
+test("state cache reduces Sheet reads and revocation invalidates cached sessions", () => {
+  const m = mock();
+  const mod = m.call("modLogin", { password: "correct-password" }).token;
+  const code = "ABCDEFGHJKLMNPQRSTUVWXYZ234";
+  const people = m.call(
+    "import",
+    {
+      people: [
+        {
+          employee: "C1",
+          name: "Người mẫu",
+          codeHash: createHash("sha256").update(code).digest("hex"),
+        },
+      ],
+    },
+    mod,
+  );
+  const t = m.call("login", { code }).token;
+  const reads = m.reads();
+  for (let i = 0; i < 100; i++) m.call("me", {}, t);
+  assert.equal(m.reads(), reads);
+  const oldKey = m.properties.get("STATE_CACHE_KEY");
+  m.call(
+    "rotateCode",
+    { personId: people[0].id, codeHash: "c".repeat(64) },
+    mod,
+  );
+  assert.notEqual(m.properties.get("STATE_CACHE_KEY"), oldKey);
+  assert.throws(() => m.call("me", {}, t));
+  m.cache.clear();
+  assert.equal(m.call("admin", {}, mod).people.length, 1);
+  assert.equal(m.reads(), reads + 1);
 });
 test("photo validation, failed write cleanup, authorization, lock busy", () => {
   const m = mock();

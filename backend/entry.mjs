@@ -75,9 +75,31 @@ function verify(token, s) {
     );
   }
 }
+function cacheState(key, state) {
+  try {
+    const encoded = Utilities.base64Encode(
+      Utilities.gzip(Utilities.newBlob(JSON.stringify(state))).getBytes(),
+    );
+    if (encoded.length < 95000) cache().put(key, encoded, 600);
+  } catch {
+    /* Cache is optional; the committed Sheet is authoritative. */
+  }
+}
 function readState() {
   const sheetId = props().getProperty("SHEET_ID");
   if (!sheetId) fail("UNINITIALIZED", "Sự kiện chưa được khởi tạo.");
+  const key = props().getProperty("STATE_CACHE_KEY") || "state:initial";
+  try {
+    const encoded = cache().get(key);
+    if (encoded)
+      return JSON.parse(
+        Utilities.ungzip(
+          Utilities.newBlob(Utilities.base64Decode(encoded)),
+        ).getDataAsString(),
+      );
+  } catch {
+    /* Missing/evicted/corrupt cache falls back to the Sheet. */
+  }
   const values =
     Sheets.Spreadsheets.Values.get(sheetId, "'Data'!A:B").values || [];
   if (!values.length) return emptyState();
@@ -94,6 +116,7 @@ function readState() {
     )
       s[kind].push(value);
   }
+  cacheState(key, s);
   return s;
 }
 function writeState(s) {
@@ -135,10 +158,13 @@ function writeState(s) {
     { requests },
     props().getProperty("SHEET_ID"),
   );
+  const stateKey = "state:" + Utilities.getUuid();
   props().setProperties({
     ROW_COUNT: String(rows.length),
     GRID_ROWS: String(Math.max(grid, total)),
+    STATE_CACHE_KEY: stateKey,
   });
+  cacheState(stateKey, s);
   cache().remove("wall");
 }
 function limited(key, max) {
@@ -367,6 +393,17 @@ export function doPost(e) {
       fail("VALIDATION", "Yêu cầu quá lớn hoặc không hợp lệ.");
     return json({ ok: true, data: handle(JSON.parse(e.postData.contents)) });
   } catch (err) {
+    // Quota contention is retryable; never include provider diagnostics in public JSON.
+    if (
+      !err.code &&
+      /quota|too many|rate limit|service invoked too many/i.test(
+        String(err.message),
+      )
+    ) {
+      err.code = "BUSY";
+      err.message =
+        "Có nhiều truy cập cùng lúc. Vui lòng chờ một chút rồi thử lại.";
+    }
     return json({
       ok: false,
       error: {

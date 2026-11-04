@@ -170,7 +170,6 @@ async function main() {
         "Test live tự động chỉ chạy khi sự kiện trống; không thử trên dữ liệu người thật.",
       );
     try {
-      await seed();
       node("node_modules/@playwright/test/cli.js", ["test", "live.spec.ts"]);
     } finally {
       await call("cleanDemo", {}, token);
@@ -200,27 +199,41 @@ async function main() {
     const token = await modToken();
     const report = { count, duration, results: [], reads: 0, readErrors: 0 };
     let poll = true;
-    const readers = Array.from({ length: count }, (_, i) =>
-      (async () => {
-        await new Promise((r) => setTimeout(r, i * 100));
-        while (poll) {
-          try {
-            await call("wall");
-            report.reads++;
-          } catch {
-            report.readErrors++;
+    let readers = [];
+    const startReaders = () =>
+      Array.from({ length: count }, (_, i) =>
+        (async () => {
+          await new Promise((r) => setTimeout(r, i * 100));
+          while (poll) {
+            try {
+              await call("wall");
+              report.reads++;
+            } catch {
+              report.readErrors++;
+            }
+            await new Promise((r) =>
+              setTimeout(r, 15000 + Math.random() * 2000),
+            );
           }
-          await new Promise((r) => setTimeout(r, 15000 + Math.random() * 2000));
-        }
-      })(),
-    );
+        })(),
+      );
     const started = Date.now();
     try {
-      const auth = [];
-      for (const p of fixtures) {
-        const t = (await call("login", { code: p.code })).token;
-        auth.push({ token: t, me: await call("me", {}, t) });
-      }
+      const auth = new Array(fixtures.length);
+      let cursor = 0;
+      await Promise.all(
+        Array.from({ length: 6 }, async () => {
+          while (cursor < fixtures.length) {
+            const i = cursor++;
+            const t = (await call("login", { code: fixtures[i].code })).token;
+            auth[i] = { token: t, me: await call("me", {}, t) };
+          }
+        }),
+      );
+      console.log(
+        `Đã chuẩn bị ${auth.length} phiên; bắt đầu gửi và đọc tường đồng thời.`,
+      );
+      readers = startReaders();
       await Promise.all(
         auth.map(async (a, i) => {
           await new Promise((r) =>
@@ -248,6 +261,10 @@ async function main() {
               ms: Date.now() - begin,
             });
           }
+          if (report.results.length % 25 === 0)
+            console.log(
+              `Đã kết thúc ${report.results.length}/${count} lượt gửi; thành công ${report.results.filter((r) => r.ok).length}.`,
+            );
         }),
       );
       const actual = await call("admin", {}, token);
@@ -263,6 +280,7 @@ async function main() {
         report.actual === count &&
         new Set(report.results.map((x) => x.id)).size === count &&
         report.results.every((x) => x.ok) &&
+        report.readErrors === 0 &&
         (!duration ? Math.max(...times) <= 120000 : true);
       await saveJSON(".local/load-report.json", report);
       console.log(

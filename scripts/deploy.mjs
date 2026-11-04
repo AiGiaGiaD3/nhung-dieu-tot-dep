@@ -247,9 +247,14 @@ async function main() {
     state.publicUrl,
   ]);
   run("git", [
-    "-c", "credential.helper=",
-    "-c", "credential.helper=!gh auth git-credential",
-    "push", "-u", "origin", "HEAD:main",
+    "-c",
+    "credential.helper=",
+    "-c",
+    "credential.helper=!gh auth git-credential",
+    "push",
+    "-u",
+    "origin",
+    "HEAD:main",
   ]);
   let workflow;
   for (let i = 0; i < 15; i++) {
