@@ -428,7 +428,9 @@ export function handle(req) {
   }
   if (!MUTATIONS.has(action)) return dispatch(s, action, actualPayload, ctx);
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(1000)) {
+  // Allow a queued writer to acquire the lock through transient slow Sheet
+  // writes, while leaving room within the browser's 25-second request timeout.
+  if (!lock.tryLock(8000)) {
     trash(createdFile);
     fail("BUSY", "Có nhiều lời chúc đang được gửi. Vui lòng chờ một chút.");
   }

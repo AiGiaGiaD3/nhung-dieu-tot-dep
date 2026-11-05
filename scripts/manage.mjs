@@ -220,7 +220,8 @@ async function main() {
             } catch (error) {
               report.readErrors++;
               const code = error.code || "NETWORK";
-              report.readErrorCodes[code] = (report.readErrorCodes[code] || 0) + 1;
+              report.readErrorCodes[code] =
+                (report.readErrorCodes[code] || 0) + 1;
             }
             await new Promise((r) =>
               setTimeout(r, 15000 + Math.random() * 2000),
@@ -305,8 +306,16 @@ async function main() {
       await Promise.all(readers);
       await call("cleanDemo", {}, token);
       const after = await call("admin", {}, token);
-      if (after.people.length || after.wishes.length || after.assignments.length || after.receipts.length || after.settings.open)
-        throw new Error("Dọn dữ liệu tải chưa sạch hoặc cổng còn mở; cần kiểm tra trước khi dùng thật.");
+      if (
+        after.people.length ||
+        after.wishes.length ||
+        after.assignments.length ||
+        after.receipts.length ||
+        after.settings.open
+      )
+        throw new Error(
+          "Dọn dữ liệu tải chưa sạch hoặc cổng còn mở; cần kiểm tra trước khi dùng thật.",
+        );
       await fs.rm(".local/fixtures.json", { force: true });
       console.log("Đã đối soát sạch dữ liệu tải và đóng cổng gửi.");
     }
