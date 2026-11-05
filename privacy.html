@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <meta
+      name="description"
+      content="Cách Những điều tốt đẹp sử dụng, lưu trữ và bảo vệ dữ liệu của hoạt động tri ân 20/11."
+    />
+    <title>Quyền riêng tư · Những điều tốt đẹp</title>
+    <link rel="icon" href="data:," />
+  </head>
+  <body>
+    <header class="info-header"><a href="./">Những điều tốt đẹp</a></header>
+    <main class="info-page">
+      <span class="eyebrow">Thông tin dành cho người tham gia</span>
+      <h1>Quyền riêng tư</h1>
+      <p>
+        Cập nhật ngày 05/11/2026. Những điều tốt đẹp là ứng dụng gửi lời tri ân
+        giữa những người tham gia hoạt động 20/11 của Bộ phận Đào tạo. Ban tổ
+        chức quản lý danh sách và vận hành sự kiện.
+      </p>
+      <h2>Dữ liệu được sử dụng</h2>
+      <p>
+        Ứng dụng sử dụng mã nhân viên, họ tên, đơn vị, ảnh chân dung nếu có,
+        phân công người nhận và nội dung lời chúc. Người tham gia vào bằng mã
+        hoặc link riêng; không cần đăng nhập Google. Mã truy cập được kiểm tra
+        bằng bản băm trên backend. Phiên đăng nhập được lưu trong bộ nhớ phiên
+        của trình duyệt.
+      </p>
+      <h2>Mục đích và người được xem</h2>
+      <p>
+        Dữ liệu được dùng để ghép người, gửi và nhận lời chúc, hiển thị bức
+        tường và tạo thiệp tải về. Tên người nhận và nội dung lời chúc xuất hiện
+        trên bức tường công khai; bất kỳ ai có link bức tường đều có thể xem.
+        Với lời chúc ghi tên, tên người gửi cũng xuất hiện.
+      </p>
+      <p>
+        Khi chọn ẩn danh, người nhận và bức tường không thấy tên người gửi. Ban
+        tổ chức vẫn thấy tác giả trong trang quản trị để xử lý nội dung. Ảnh
+        chân dung được lưu riêng và chỉ trả qua API sau khi kiểm tra phiên đăng
+        nhập; ảnh không được đưa lên bức tường công khai.
+      </p>
+      <h2>Dữ liệu Google và nơi lưu trữ</h2>
+      <p>
+        Chủ tài khoản quản trị cấp quyền Google để công cụ triển khai tạo và
+        quản lý Google Sheet, Apps Script và thư mục ảnh trên Drive phục vụ sự
+        kiện. Dữ liệu sự kiện và ảnh được lưu trong Sheet/Drive riêng của chủ
+        tài khoản. Repository và website GitHub Pages chỉ chứa giao diện, mã
+        nguồn và hình minh hoạ; không chứa mật khẩu quản trị, mã cá nhân hoặc
+        danh sách nhân sự thật.
+      </p>
+      <p>
+        Ứng dụng không bán dữ liệu, không dùng nội dung hoặc ảnh cho quảng cáo
+        và không dùng chúng để huấn luyện mô hình AI. Dữ liệu Google được sử
+        dụng cho các chức năng nêu trên, phù hợp với
+        <a
+          href="https://developers.google.com/terms/api-services-user-data-policy"
+          rel="noopener"
+          >Google API Services User Data Policy</a
+        >, gồm yêu cầu Limited Use. Google và GitHub cung cấp hạ tầng và có thể
+        xử lý nhật ký kỹ thuật theo chính sách của họ.
+      </p>
+      <h2>Thời gian lưu và yêu cầu thay đổi</h2>
+      <p>
+        Ban tổ chức đặt thời gian mở gửi, đóng gửi và hạn truy cập. Đóng cổng
+        gửi không tự xoá dữ liệu. Sau sự kiện, ban tổ chức sử dụng quy trình xoá
+        dữ liệu, dọn thùng rác Drive và gỡ website/backend khi không còn nhu cầu
+        sử dụng. Cache nội bộ có thời hạn; dữ liệu chính nằm trong Sheet/Drive.
+      </p>
+      <p>
+        Để sửa thông tin, thay hoặc xoá ảnh, yêu cầu xử lý lời chúc hoặc hỏi về
+        dữ liệu của mình, hãy liên hệ ban tổ chức qua kênh nội bộ đã phát mã
+        tham gia. Các bản thiệp đã được người nhận tải về nằm trên thiết bị của
+        họ và không thể thu hồi từ xa.
+      </p>
+      <h2>Bảo vệ link cá nhân</h2>
+      <p>
+        Link và mã cá nhân cho phép truy cập tài khoản của bạn. Không đăng chúng
+        lên nhóm công khai. Nếu mã bị lộ, báo ban tổ chức cấp lại mã; mã cũ và
+        phiên tương ứng sẽ bị thu hồi. Tránh đưa thông tin nhạy cảm hoặc thông
+        tin riêng của người khác vào lời chúc công khai.
+      </p>
+    </main>
+    <footer class="info-footer">
+      <a href="./">Về trang tham gia</a
+      ><a href="./terms.html">Quy tắc tham gia</a>
+    </footer>
+    <script type="module" src="/src/info.ts"></script>
+  </body>
+</html>

@@ -1,6 +1,6 @@
 # Thiết lập và deploy
 
-Tài liệu chuẩn bị cho Bước 3. Chưa có tài nguyên Google/GitHub thật được tạo từ dự án này.
+Tài liệu thiết lập và vận hành. Tài nguyên Google và repository AiGiaGiaD3/nhung-dieu-tot-dep đã được tạo; giữ checkpoint riêng để cập nhật đúng deployment hiện có.
 
 ## 1. Máy tính và GitHub
 
@@ -24,6 +24,12 @@ Tài liệu chuẩn bị cho Bước 3. Chưa có tài nguyên Google/GitHub th�
 
 Nếu Google báo ứng dụng chưa xác minh, chỉ tiếp tục khi đúng project bạn vừa tạo và đúng Gmail. Nếu tổ chức chặn quyền, dùng tài khoản cá nhân như thiết kế ban đầu. Chưa có người tham gia nào cần đăng nhập Google.
 
+## OAuth trước ngày sự kiện
+
+Nếu Publishing status còn Testing, Google cấp refresh token có thời hạn 7 ngày cho các scope Drive/Sheets đang dùng. Trước sự kiện 20/11, chủ tài khoản chuyển Google Auth Platform → Audience → Publish app sang In production và đăng nhập clasp lại để lấy quyền theo trạng thái mới. Việc này chỉ áp dụng tài khoản chủ quản trị; người tham gia không đăng nhập Google. Nếu Google yêu cầu xác minh hoặc hiện lỗi, xử lý đúng hướng dẫn thay vì bỏ qua.
+
+Nguồn: https://developers.google.com/identity/protocols/oauth2/
+
 ## 3. Sau khi đã thiết lập
 
 `npm run deploy` tự push code và cập nhật deployment đã ghi ở `.local/deployment.json`. Giữ file này trên máy và sao lưu riêng. `.clasp.json`, `.local/` và `.env` đều bị Git ignore. Khi đổi máy, khôi phục những tệp cấu hình riêng đó; nếu thiếu ID script sẽ dừng thay vì tự tạo deployment mới.
@@ -34,7 +40,7 @@ GitHub Actions nhận BACKEND_URL/PUBLIC_URL qua repository variables (không ph
 
 ## 4. Nghiệm thu bắt buộc
 
-Sau Pages thành công, pipeline chạy live smoke test nếu sự kiện trống, xoá dữ liệu mẫu rồi kiểm tra sạch. Nếu đã có người thật, script test dừng an toàn; chạy redeploy code cần điều chỉnh bỏ test ghi dữ liệu có chủ đích hoặc dùng môi trường staging riêng. Phiên bản đầu không tự ghi đè dữ liệu thật.
+Sau Pages thành công, pipeline chạy live smoke test nếu sự kiện trống, xoá dữ liệu mẫu rồi kiểm tra sạch. Nếu đã có dữ liệu, lệnh deploy chỉ kiểm tra backend/quản trị và bỏ qua E2E có ghi fixture để bảo toàn sự kiện. Lệnh test:live chạy riêng vẫn từ chối sự kiện không trống; dùng môi trường staging riêng để nghiệm thu có ghi dữ liệu.
 
 Chạy `npm run test:load` trước khi nhập danh sách thật. Xem `.local/load-report.json`, kiểm tra đối soát đủ số lời, không trùng, p95 và thời gian hoàn tất. Test riêng đợt đồng loạt bằng LOAD_BURST=1. Không báo “đạt 300 người” khi chỉ mới test 100.
 
@@ -50,7 +56,7 @@ Mở link public từ điện thoại 4G, Wi-Fi sự kiện và Zalo. Scan QR t�
 | OAuth client khác project | Đăng nhập clasp bằng đúng JSON; kiểm tra project number trong editor |
 | Không chạy được bootstrap | Kiểm tra API executable, scope, quyền chủ sở hữu và OAuth consent |
 | URL backend khác trước | Dừng, kiểm tra deployment ID trong local và editor; không in QR mới vội |
-| Live test từ chối vì có dữ liệu | Không xoá người thật để chạy test; dùng staging hoặc chạy read-only smoke riêng |
+| Live test từ chối vì có dữ liệu | Không xoá người thật để chạy test; dùng staging. Redeploy tự bỏ qua E2E ghi fixture |
 | Không có ảnh chân dung | Kiểm tra quyền Drive của chủ tài khoản, file còn tồn tại, không public folder |
 | Quota/429/quá nhiều thực thi | Đóng cổng tạm thời, giảm nguồn poll, chờ quota; xem báo cáo tải trước khi mở lại |
 

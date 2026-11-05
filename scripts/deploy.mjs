@@ -11,6 +11,7 @@ import {
   googleClient,
   ownerRun,
   call,
+  modToken,
   conciseError,
 } from "./lib.mjs";
 async function main() {
@@ -187,6 +188,8 @@ async function main() {
     "index.html",
     "wall.html",
     "mod.html",
+    "privacy.html",
+    "terms.html",
     "src",
     "backend",
     "public",
@@ -257,41 +260,52 @@ async function main() {
     "HEAD:main",
   ]);
   let workflow;
+  const head = run("git", ["rev-parse", "HEAD"], { capture: true });
   for (let i = 0; i < 15; i++) {
     const rows = JSON.parse(
       run(
         "gh",
         [
-          "run",
-          "list",
-          "--repo",
-          repo,
-          "--workflow",
-          "pages.yml",
-          "--limit",
-          "5",
-          "--json",
-          "databaseId,headSha,status",
+          "api",
+          `repos/${repo}/actions/runs?head_sha=${head}&per_page=5&nonce=${Date.now()}`,
         ],
         { capture: true },
       ),
     );
-    const head = run("git", ["rev-parse", "HEAD"], { capture: true });
-    workflow = rows.find((x) => x.headSha === head);
+    workflow = rows.workflow_runs.find(
+      (x) => x.head_sha === head && x.path === ".github/workflows/pages.yml",
+    );
     if (workflow) break;
     await new Promise((r) => setTimeout(r, 3000));
   }
   if (!workflow)
     throw new Error("Chưa tìm thấy workflow Pages cho commit hiện tại.");
-  run("gh", [
-    "run",
-    "watch",
-    String(workflow.databaseId),
-    "--repo",
-    repo,
-    "--exit-status",
-  ]);
-  node("scripts/manage.mjs", ["test-live"]);
+  for (
+    let attempt = 0;
+    attempt < 60 && workflow.status !== "completed";
+    attempt++
+  ) {
+    await new Promise((r) => setTimeout(r, 10000));
+    workflow = JSON.parse(
+      run(
+        "gh",
+        [
+          "api",
+          `repos/${repo}/actions/runs/${workflow.id}?nonce=${Date.now()}`,
+        ],
+        { capture: true },
+      ),
+    );
+  }
+  if (workflow.status !== "completed" || workflow.conclusion !== "success")
+    throw new Error(`Pages chưa hoàn tất thành công. Xem ${workflow.html_url}`);
+  const event = await call("admin", {}, await modToken());
+  if (!event.people.length && !event.wishes.length && !event.assignments.length)
+    node("scripts/manage.mjs", ["test-live"]);
+  else
+    console.log(
+      "Sự kiện đã có dữ liệu: đã xác minh backend và quản trị; bỏ qua E2E có ghi fixture để giữ nguyên dữ liệu hiện có.",
+    );
   node("scripts/manage.mjs", ["qr"]);
   console.log(
     `Hoàn tất triển khai: ${state.publicUrl}\nBức tường: ${state.publicUrl}wall.html\nMod: ${state.publicUrl}mod.html\nQR chung: dist/qr-chung.png`,

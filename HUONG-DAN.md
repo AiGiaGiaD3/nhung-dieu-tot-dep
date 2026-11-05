@@ -1,6 +1,16 @@
 # Những điều tốt đẹp — Hướng dẫn ban tổ chức
 
-Tài liệu vận hành. Địa chỉ thật và QR sẽ được bổ sung sau Bước 3; hiện ứng dụng đang ở bản demo.
+Tài liệu vận hành bản thật.
+
+- [Trang người tham gia](https://aigiagiad3.github.io/nhung-dieu-tot-dep/)
+- [Bức tường trình chiếu](https://aigiagiad3.github.io/nhung-dieu-tot-dep/wall.html)
+- [Ban tổ chức](https://aigiagiad3.github.io/nhung-dieu-tot-dep/mod.html)
+
+Mật khẩu quản trị được lưu riêng trên máy trong file `.env`, dòng `MOD_PASSWORD`. Mật khẩu demo không dùng trên trang thật. Khi bàn giao cho người khác, chuyển mật khẩu bằng kênh riêng; không đưa vào tài liệu public.
+
+## Kiểm tra quyền Google trước sự kiện
+
+Người phụ trách kỹ thuật kiểm tra OAuth trong Google Cloud đã ở In production và kết nối Google còn hoạt động. Trạng thái Testing có thể hết hạn quyền sau 7 ngày; xem docs/DEPLOY.md. Kiểm tra lại trên điện thoại, Zalo và Wi-Fi/4G của địa điểm trước khi phát mã.
 
 ## Chuẩn bị trước ngày diễn ra
 

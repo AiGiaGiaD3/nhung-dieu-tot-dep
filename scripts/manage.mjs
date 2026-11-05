@@ -37,7 +37,7 @@ async function confirm(text) {
   rl.close();
   if (result !== text) throw new Error("Đã huỷ.");
 }
-async function seed(count = 10) {
+async function seed(count = 10, withPhotos = true) {
   const token = await modToken(),
     state = await call("admin", {}, token);
   if (state.people.length || state.wishes.length)
@@ -59,7 +59,7 @@ async function seed(count = 10) {
   );
   const fixtures = people.map((p, i) => ({ ...p, code: entries[i].code }));
   await saveJSON(".local/fixtures.json", fixtures);
-  for (let i = 0; i < Math.min(count, 10); i++) {
+  for (let i = 0; i < (withPhotos ? Math.min(count, 10) : 0); i++) {
     const bytes = await sharp(`public/assets/avatar${i + 1}.webp`)
       .jpeg({ quality: 80 })
       .toBuffer();
@@ -195,7 +195,7 @@ async function main() {
     console.log(
       `Bài tải ${count} người, ${duration ? "phân bố trong 10 phút" : "gửi đồng loạt"}, chỉ chạy trên sự kiện trống.`,
     );
-    const fixtures = await seed(count);
+    const fixtures = await seed(count, false);
     const token = await modToken();
     const report = { count, duration, results: [], reads: 0, readErrors: 0 };
     let poll = true;
@@ -267,6 +267,8 @@ async function main() {
             );
         }),
       );
+      poll = false;
+      await Promise.all(readers);
       const actual = await call("admin", {}, token);
       report.actual = actual.wishes.length;
       const times = report.results

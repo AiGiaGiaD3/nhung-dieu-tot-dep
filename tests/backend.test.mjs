@@ -37,6 +37,12 @@ function mock() {
     getContentType: () => type,
   });
   const sandbox = {
+    ContentService: {
+      MimeType: { JSON: "application/json" },
+      createTextOutput: (content) => ({
+        setMimeType: () => ({ getContent: () => content }),
+      }),
+    },
     console,
     Date,
     Math,
@@ -72,8 +78,16 @@ function mock() {
       base64Decode: (v) => [...Buffer.from(v, "base64")],
       base64Encode: (v) => Buffer.from(v).toString("base64"),
       newBlob: blob,
-      gzip: (b) => blob([...gzipSync(Buffer.from(b.getBytes()))]),
-      ungzip: (b) => blob([...gunzipSync(Buffer.from(b.getBytes()))]),
+      gzip: (b) =>
+        blob([...gzipSync(Buffer.from(b.getBytes()))], "application/x-gzip"),
+      ungzip: (b) => {
+        assert.equal(
+          b.getContentType(),
+          "application/x-gzip",
+          "Apps Script requires gzip blob metadata",
+        );
+        return blob([...gunzipSync(Buffer.from(b.getBytes()))]);
+      },
       getUuid: randomUUID,
     },
     SpreadsheetApp: {
@@ -107,7 +121,10 @@ function mock() {
           },
         },
         batchUpdate: (body) => {
-          if (failure) throw new Error("network failure");
+          if (failure)
+            throw new Error(
+              typeof failure === "string" ? failure : "network failure",
+            );
           cells = body.requests
             .at(-1)
             .updateCells.rows.map((r) =>
@@ -128,6 +145,12 @@ function mock() {
     sandbox.B.handle({ action, payload, token });
   return {
     call,
+    post: (action, payload = {}, token = "") =>
+      JSON.parse(
+        sandbox.B.doPost({
+          postData: { contents: JSON.stringify({ action, payload, token }) },
+        }).getContent(),
+      ),
     files,
     fail: (v) => (failure = v),
     lock: (v) => (locked = v),
@@ -264,4 +287,46 @@ test("bootstrap not reachable through public dispatcher; password failures rate 
     () => m.call("modLogin", { password: "correct-password" }),
     /một phút/,
   );
+});
+
+test("temporary Sheets failure retries with the same wish id without duplicates", () => {
+  const m = mock();
+  const token = m.call("modLogin", { password: "correct-password" }).token;
+  const code = "ABCDEFGHJKLMNPQRSTUVWXYZ234";
+  m.call(
+    "import",
+    {
+      people: [
+        {
+          employee: "R1",
+          name: "Người Một",
+          codeHash: createHash("sha256").update(code).digest("hex"),
+        },
+        { employee: "R2", name: "Người Hai", codeHash: "b".repeat(64) },
+      ],
+    },
+    token,
+  );
+  m.call("pair", {}, token);
+  m.call("settings", { open: true }, token);
+  const person = m.call("login", { code }).token;
+  const me = m.call("me", {}, person);
+  const request = {
+    requestId: "transient-retry",
+    kind: "main",
+    round: me.round,
+    recipientId: me.recipient.id,
+    text: "Một lời chúc được lưu đúng một lần",
+    anonymous: false,
+  };
+  m.fail("The service is currently unavailable.");
+  const failed = m.post("send", request, person);
+  assert.equal(failed.error.code, "BUSY");
+  assert(!failed.error.message.includes("service"));
+  m.fail(false);
+  const sent = m.post("send", request, person);
+  const replay = m.post("send", request, person);
+  assert.equal(sent.ok, true);
+  assert.equal(replay.data.id, sent.data.id);
+  assert.equal(m.call("wall").total, 1);
 });

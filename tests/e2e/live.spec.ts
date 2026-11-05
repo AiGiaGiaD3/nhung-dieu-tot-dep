@@ -11,6 +11,8 @@ test("live Excel import, bulk portraits, pairing, participants, PNG and moderati
   context,
 }) => {
   test.setTimeout(600000);
+  context.setDefaultTimeout(45000);
+  context.setDefaultNavigationTimeout(45000);
   const check = expect.configure({ timeout: 45000 });
   const errors: string[] = [];
   const monitor = (p: any) => {
@@ -116,6 +118,19 @@ test("live Excel import, bulk portraits, pairing, participants, PNG and moderati
   await page.goto("./#code=" + first.code);
   await check(page.getByRole("button", { name: "Mở phong thư" })).toBeVisible();
   await page.getByRole("button", { name: "Mở phong thư" }).click();
+  await check(
+    page.getByRole("button", { name: "Viết lời chúc" }),
+  ).toBeVisible();
+  await check
+    .poll(() =>
+      page
+        .locator(".avatar.large img")
+        .evaluateAll((images) =>
+          images.some((img) => (img as HTMLImageElement).naturalWidth > 0),
+        ),
+    )
+    .toBe(true);
+  await page.evaluate(() => window.scrollTo(0, 0));
   await fs.mkdir("screenshots/live", { recursive: true });
   await page.screenshot({ path: "screenshots/live/mobile-390x844.png" });
   await page.setViewportSize({ width: 360, height: 800 });
@@ -193,7 +208,7 @@ test("live Excel import, bulk portraits, pairing, participants, PNG and moderati
   );
   expect(anonymous).toBeTruthy();
   expect(anonymous.senderId).toBeUndefined();
-  expect(anonymous.realSender).toBeUndefined();
+  expect(anonymous.actualSender).toBeUndefined();
   expect(JSON.stringify(anonymous)).not.toContain(first.name);
   await mod.getByRole("button", { name: "Lời chúc", exact: true }).click();
   await mod

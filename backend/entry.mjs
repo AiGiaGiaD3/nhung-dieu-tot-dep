@@ -81,8 +81,14 @@ function cacheState(key, state) {
       Utilities.gzip(Utilities.newBlob(JSON.stringify(state))).getBytes(),
     );
     if (encoded.length < 95000) cache().put(key, encoded, 600);
-  } catch {
+  } catch (error) {
     /* Cache is optional; the committed Sheet is authoritative. */
+    try {
+      props().setProperty(
+        "CACHE_DIAGNOSTIC",
+        String(error.message).slice(0, 500),
+      );
+    } catch {}
   }
 }
 function readState() {
@@ -94,11 +100,21 @@ function readState() {
     if (encoded)
       return JSON.parse(
         Utilities.ungzip(
-          Utilities.newBlob(Utilities.base64Decode(encoded)),
+          Utilities.newBlob(
+            Utilities.base64Decode(encoded),
+            "application/x-gzip",
+            "state.json.gz",
+          ),
         ).getDataAsString(),
       );
-  } catch {
+  } catch (error) {
     /* Missing/evicted/corrupt cache falls back to the Sheet. */
+    try {
+      props().setProperty(
+        "CACHE_DIAGNOSTIC",
+        "decode: " + String(error.message).slice(0, 450),
+      );
+    } catch {}
   }
   const values =
     Sheets.Spreadsheets.Values.get(sheetId, "'Data'!A:B").values || [];
@@ -169,17 +185,23 @@ function writeState(s) {
 }
 function limited(key, max) {
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(100)) fail("BUSY", "Hệ thống đang bận, vui lòng thử lại.");
+  if (!lock.tryLock(1000)) fail("BUSY", "Hệ thống đang bận, vui lòng thử lại.");
   try {
     const k = "RATE_" + key;
-    const raw = JSON.parse(props().getProperty(k) || "null"),
+    // Use a fast, best-effort global counter for high-entropy participant codes;
+    // preserve durable rate limiting for the moderator's password.
+    const transient = key === "LOGIN";
+    const raw = JSON.parse(
+        (transient ? cache().get(k) : props().getProperty(k)) || "null",
+      ),
       now = Date.now();
     const value =
       raw && now < raw.until ? raw : { count: 0, until: now + 60000 };
     if (value.count >= max)
       fail("RATE", "Bạn đã thử nhiều lần. Vui lòng chờ một phút.");
     value.count++;
-    props().setProperty(k, JSON.stringify(value));
+    if (transient) cache().put(k, JSON.stringify(value), 60);
+    else props().setProperty(k, JSON.stringify(value));
   } finally {
     lock.releaseLock();
   }
@@ -268,9 +290,37 @@ export function changePassword(verifier) {
 }
 export function ownerInfo() {
   owner();
+  const encodedState = cache().get(
+    props().getProperty("STATE_CACHE_KEY") || "state:initial",
+  );
+  let stateCacheReadable = false,
+    stateCacheError = "";
+  if (encodedState) {
+    try {
+      JSON.parse(
+        Utilities.ungzip(
+          Utilities.newBlob(
+            Utilities.base64Decode(encodedState),
+            "application/x-gzip",
+            "state.json.gz",
+          ),
+        ).getDataAsString(),
+      );
+      stateCacheReadable = true;
+    } catch (error) {
+      stateCacheError = String(error.message).slice(0, 500);
+    }
+  }
   return {
     sheetId: props().getProperty("SHEET_ID"),
     folderId: props().getProperty("FOLDER_ID"),
+    lastError: props().getProperty("LAST_ERROR"),
+    cacheDiagnostic: props().getProperty("CACHE_DIAGNOSTIC"),
+    stateCacheReadable,
+    stateCacheError,
+    stateCachePresent: !!cache().get(
+      props().getProperty("STATE_CACHE_KEY") || "state:initial",
+    ),
   };
 }
 export function handle(req) {
@@ -393,10 +443,21 @@ export function doPost(e) {
       fail("VALIDATION", "Yêu cầu quá lớn hoặc không hợp lệ.");
     return json({ ok: true, data: handle(JSON.parse(e.postData.contents)) });
   } catch (err) {
+    if (!err.code) {
+      try {
+        props().setProperty(
+          "LAST_ERROR",
+          JSON.stringify({
+            at: new Date().toISOString(),
+            message: String(err.message).slice(0, 700),
+          }),
+        );
+      } catch {}
+    }
     // Quota contention is retryable; never include provider diagnostics in public JSON.
     if (
       !err.code &&
-      /quota|too many|rate limit|service invoked too many/i.test(
+      /quota|too many|rate limit|service invoked too many|service (?:is )?(?:currently |temporarily )?unavailable|internal error|backend error|timed? out|timeout|network failure|service error/i.test(
         String(err.message),
       )
     ) {

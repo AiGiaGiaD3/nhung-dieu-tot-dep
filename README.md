@@ -2,7 +2,9 @@
 
 Ứng dụng tri ân 20/11 dành cho Bộ phận Đào tạo Prudential Việt Nam. Frontend tĩnh trên GitHub Pages, backend Google Apps Script, dữ liệu trên Google Sheet và ảnh thật trong Drive riêng.
 
-**Trạng thái Bước 2:** đã xây demo, backend, scripts và bộ kiểm thử. Chưa đăng nhập Google/GitHub, chưa deploy thật, chưa chạy tải trên Google. Không coi backend mô phỏng là chứng nhận chịu tải thật. Không có logo chính thức trong tệp đầu vào nên giao diện chưa đặt logo.
+**Trạng thái 05/11/2026:** đã triển khai backend Google và GitHub Pages. Đang nghiệm thu tải và luồng người dùng trên bản thật; xem [báo cáo kiểm thử](docs/TEST-REPORT.md). Không có logo chính thức trong tệp đầu vào nên giao diện chưa đặt logo.
+
+[Trang tham gia](https://aigiagiad3.github.io/nhung-dieu-tot-dep/) · [Bức tường](https://aigiagiad3.github.io/nhung-dieu-tot-dep/wall.html) · [Ban tổ chức](https://aigiagiad3.github.io/nhung-dieu-tot-dep/mod.html)
 
 ## Chạy trên máy
 
@@ -30,7 +32,7 @@ npm run build:demo
 
 Playwright tự dùng Chrome tại đường dẫn Windows chuẩn nếu có, nếu không thì dùng Chromium đã cài. Có thể đặt `CHROME_PATH` cho vị trí khác. Ảnh demo ở `screenshots/`; trace lỗi ở `test-results/`, không được commit. Bài live tự bỏ qua khi chưa có LIVE_URL.
 
-15 bài unit/integration kiểm tra thuật toán, phân quyền, API ẩn danh, retry, lịch, ghi Sheet nguyên tử qua mock, token và ảnh. Ba kịch bản E2E demo bao phủ người gửi, người nhận, mod, XSS, PNG, ảnh lô, QR, 360px, mobile và màn chiếu. Xem `docs/TEST-REPORT.md` để biết kết quả và giới hạn.
+16 bài unit/integration kiểm tra thuật toán, phân quyền, API ẩn danh, retry, lịch, ghi Sheet nguyên tử qua mock, token và ảnh. Ba kịch bản E2E demo bao phủ người gửi, người nhận, mod, XSS, PNG, ảnh lô, QR, 360px, mobile và màn chiếu. Xem `docs/TEST-REPORT.md` để biết kết quả và giới hạn.
 
 ## Deploy
 
@@ -42,7 +44,7 @@ npm run deploy
 
 Script kiểm tra tài khoản `AiGiaGiaD3`, tạo Sheet và project gắn Sheet, push bằng clasp, cập nhật deployment cũ theo ID, khởi tạo bằng API chủ sở hữu, build, đẩy repo/Pages, chờ workflow, chạy smoke test thật với fixture riêng, dọn fixture và xuất QR. Lần đầu dừng để chủ tài khoản cấp quyền và liên kết Cloud project; chạy lại để tiếp tục từ checkpoint.
 
-Chưa chạy quy trình này trên tài khoản thật. Mỗi lỗi xác thực hoặc bất đồng cấu hình sẽ dừng; không có thông báo deploy thành công nếu health hoặc live test chưa qua. `npm run test:load` là bước nghiệm thu riêng cần chạy trước sự kiện, sau deploy smoke test.
+Quy trình đã tạo tài nguyên và triển khai trên tài khoản thật. Mỗi lỗi xác thực hoặc bất đồng cấu hình sẽ dừng; không có thông báo deploy thành công nếu health hoặc live test chưa qua. `npm run test:load` là bước nghiệm thu riêng cần chạy trước sự kiện, sau deploy smoke test.
 
 ## Kiến trúc và dữ liệu
 
@@ -53,7 +55,7 @@ Chưa chạy quy trình này trên tài khoản thật. Mỗi lỗi xác thực 
 - `scripts/`: build, triển khai, fixture, kiểm thử tải, QR, đổi mật khẩu và gỡ sự kiện.
 - `public/assets/`: 16 hình WebP AI và bản OG JPEG, đều minh hoạ hoặc nhân vật hư cấu. Prompt lưu trong `docs/IMAGE-PROMPTS.json`.
 
-Sheet `Data` có cột loại bản ghi và JSON cho từng người, lời chúc, phân công, cấu hình và audit. Ghi bằng một `spreadsheets.batchUpdate` với `stringValue` trong `ScriptLock`: cùng một lần cập nhật nguyên tử, không thực thi công thức Excel. Không sửa trực tiếp sheet trong giờ sự kiện. Cách lưu này giúp giữ nguyên tính nhất quán mà không cần database/server riêng; giao diện mod là nơi xem và sửa dữ liệu.
+Sheet `Data` có cột loại bản ghi và JSON cho từng người, lời chúc, phân công, cấu hình và audit. Dữ liệu đã commit được nén và cache riêng tối đa 10 phút; mỗi lần ghi đổi khóa cache để phiên bị thu hồi không dùng dữ liệu cũ. Cache thiếu/hỏng thì đọc lại Sheet. Ghi bằng một `spreadsheets.batchUpdate` với `stringValue` trong `ScriptLock`: cùng một lần cập nhật nguyên tử, không thực thi công thức Excel. Không sửa trực tiếp sheet trong giờ sự kiện. Cách lưu này giúp giữ nguyên tính nhất quán mà không cần database/server riêng; giao diện mod là nơi xem và sửa dữ liệu.
 
 Mã cá nhân ngẫu nhiên tạo bằng Web Crypto/Node crypto; server lưu SHA-256. Link/mã chỉ xuất khi vừa cấp. Mật khẩu mod được bcrypt ở Node và verifier đặt trong Script Properties; backend so sánh, phiên ký HMAC có hạn. Đổi mã thu hồi phiên người đó; đổi mật khẩu thu hồi tất cả phiên.
 
@@ -90,7 +92,7 @@ Gỡ deployment không tự xoá Sheet hoặc Drive. Người đã tải thiệp
 
 ## Giới hạn đã biết cần xác minh ở Bước 3
 
-- Apps Script quota, thời gian phản hồi, CORS/redirect từ Pages thật, OAuth bootstrap và cập nhật deployment giữ URL chưa được kiểm chứng trên tài khoản này.
+- OAuth bootstrap và cập nhật deployment giữ URL đã kiểm tra trên tài khoản thật. Kết quả CORS, tải và luồng người dùng được ghi riêng trong docs/TEST-REPORT.md; không suy rộng kết quả 100 người thành bảo đảm 300 người.
 - QR demo localhost chỉ minh hoạ bố cục; không dùng in poster sự kiện. QR in thật chỉ được tạo khi có URL public.
 - Safari/iPhone, Android/Zalo và Wi-Fi tại địa điểm cần test trên thiết bị/mạng thật. Playwright Chrome không thay thế các kiểm tra đó.
 - Thông báo inbox khi mất mạng không có push nền; cập nhật khi mở trang/poll. Tường dùng polling/cache, không WebSocket.

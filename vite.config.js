@@ -6,7 +6,13 @@ export default defineConfig(({ mode }) => {
     define: { __DEMO__: JSON.stringify(mode === "demo") },
     build: {
       rollupOptions: {
-        input: { main: "index.html", wall: "wall.html", mod: "mod.html" },
+        input: {
+          main: "index.html",
+          wall: "wall.html",
+          mod: "mod.html",
+          privacy: "privacy.html",
+          terms: "terms.html",
+        },
       },
     },
     server: {

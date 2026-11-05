@@ -6,6 +6,7 @@ import "@fontsource/be-vietnam-pro/latin-600.css";
 import "@fontsource/be-vietnam-pro/latin-700.css";
 import "./style.css";
 import "./refinements.css";
+import "./info.css";
 import { esc } from "./security";
 import { DEMO, api } from "./api";
 export const $ = <T extends HTMLElement = HTMLElement>(s: string) =>
@@ -30,7 +31,7 @@ export function header(active = "home", name = "") {
   return `${DEMO ? '<div class="demo-banner">Bản trải nghiệm · Dữ liệu hoàn toàn giả lập</div>' : ""}<header class="site-header"><a class="event-name" href="./">Những điều tốt đẹp<span>Tri ân ngày Nhà giáo Việt Nam</span></a><nav aria-label="Điều hướng chính"><a href="./" ${active === "home" ? 'aria-current="page"' : ""}>${icon("heart")}<span>Gửi lời chúc</span></a><a href="./#inbox" ${active === "inbox" ? 'aria-current="page"' : ""}>${icon("mail")}<span>Hộp thư của tôi</span></a><a href="./wall.html">${icon("grid")}<span>Bức tường</span></a></nav><div class="header-end">${name ? `<button class="avatar-small" id="profile" aria-label="Ảnh và tài khoản của tôi">${esc(name.split(" ").at(-1)?.slice(0, 1))}</button>` : '<span class="date-badge">20<span>/</span>11</span>'}</div></header>`;
 }
 export function footer() {
-  return '<footer class="site-footer"><span>Mỗi lời cảm ơn đều có thể làm nên một ngày thật đẹp.</span><span>Bộ phận Đào tạo · Prudential Việt Nam</span></footer>';
+  return '<footer class="site-footer"><span>Mỗi lời cảm ơn đều có thể làm nên một ngày thật đẹp.</span><span>Bộ phận Đào tạo · Prudential Việt Nam</span><span class="privacy-links"><a href="./privacy.html">Quyền riêng tư</a><a href="./terms.html">Quy tắc tham gia</a></span></footer>';
 }
 export function toast(message: string, error = false) {
   const node = $("#toast");
