@@ -2,7 +2,7 @@
 
 Ứng dụng tri ân 20/11 dành cho Bộ phận Đào tạo Prudential Việt Nam. Frontend tĩnh trên GitHub Pages, backend Google Apps Script, dữ liệu trên Google Sheet và ảnh thật trong Drive riêng.
 
-**Trạng thái 05/11/2026:** đã triển khai backend Google và GitHub Pages. Đang nghiệm thu tải và luồng người dùng trên bản thật; xem [báo cáo kiểm thử](docs/TEST-REPORT.md). Không có logo chính thức trong tệp đầu vào nên giao diện chưa đặt logo.
+**Trạng thái 05/11/2026:** đã triển khai backend Google và GitHub Pages; đạt 18 kiểm tra backend, 3 E2E demo và 1 E2E thật. Bài tải phân bố trong 10 phút đạt 300/300 lời gửi, 10.329 lượt đọc tường không lỗi; dữ liệu mẫu đã dọn sạch, cổng gửi đóng. Xem [báo cáo kiểm thử và giới hạn](docs/TEST-REPORT.md). Chủ tài khoản xác nhận OAuth In production và đã cấp lại quyền. Không có logo chính thức trong tệp đầu vào nên giao diện chưa đặt logo.
 
 [Trang tham gia](https://aigiagiad3.github.io/nhung-dieu-tot-dep/) · [Bức tường](https://aigiagiad3.github.io/nhung-dieu-tot-dep/wall.html) · [Ban tổ chức](https://aigiagiad3.github.io/nhung-dieu-tot-dep/mod.html)
 
@@ -90,9 +90,9 @@ Không ghi mật khẩu/token vào console. Trace/test live và CSV cá nhân ch
 
 Gỡ deployment không tự xoá Sheet hoặc Drive. Người đã tải thiệp PNG có thể giữ bản của họ; không thu hồi được tệp từ xa. QR cá nhân/link riêng không chia sẻ lên tường hoặc nhóm công khai.
 
-## Giới hạn đã biết cần xác minh ở Bước 3
+## Giới hạn vận hành
 
-- OAuth bootstrap và cập nhật deployment giữ URL đã kiểm tra trên tài khoản thật. Kết quả CORS, tải và luồng người dùng được ghi riêng trong docs/TEST-REPORT.md; không suy rộng kết quả 100 người thành bảo đảm 300 người.
+- OAuth bootstrap và cập nhật deployment giữ URL đã kiểm tra trên tài khoản thật. Bài tải 300 lượt gửi phân bố trong 10 phút đã đạt; đây là client API có retry, không phải chứng nhận 300 thiết bị gửi ngay trong cùng một giây. Kết quả và phương pháp nằm trong docs/TEST-REPORT.md.
 - QR demo localhost chỉ minh hoạ bố cục; không dùng in poster sự kiện. QR in thật chỉ được tạo khi có URL public.
 - Safari/iPhone, Android/Zalo và Wi-Fi tại địa điểm cần test trên thiết bị/mạng thật. Playwright Chrome không thay thế các kiểm tra đó.
 - Thông báo inbox khi mất mạng không có push nền; cập nhật khi mở trang/poll. Tường dùng polling/cache, không WebSocket.

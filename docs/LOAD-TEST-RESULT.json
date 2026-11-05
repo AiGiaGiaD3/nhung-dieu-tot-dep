@@ -1,0 +1,17 @@
+{
+  "count": 300,
+  "duration": 600000,
+  "startedAt": "2026-11-05T13:42:46.582Z",
+  "sourceRevision": "bd7e5e34ea9314ef058ad4a6c240fa10b4fd5b40",
+  "reads": 10329,
+  "readErrors": 0,
+  "readErrorCodes": {},
+  "actual": 300,
+  "p50": 2784,
+  "p95": 4232,
+  "elapsedMs": 793913,
+  "pass": true,
+  "successfulSends": 300,
+  "failedSends": 0,
+  "uniqueWishIds": 300
+}
