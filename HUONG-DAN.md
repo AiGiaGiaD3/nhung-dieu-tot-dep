@@ -8,6 +8,8 @@ Tài liệu vận hành bản thật.
 
 Mật khẩu quản trị được lưu riêng trên máy trong file `.env`, dòng `MOD_PASSWORD`. Mật khẩu demo không dùng trên trang thật. Khi bàn giao cho người khác, chuyển mật khẩu bằng kênh riêng; không đưa vào tài liệu public.
 
+Các tab quản trị mở ngay bằng dữ liệu đã tải và cập nhật dữ liệu mới ở nền. Nếu bạn đang nhập hoặc lọc, nội dung đang làm được giữ nguyên; nút **Có cập nhật · Làm mới** báo có dữ liệu mới. Chọn **Làm mới dữ liệu** khi muốn tải lại toàn bộ thông tin. Thao tác lưu vẫn cần chờ thông báo xác nhận thành công.
+
 ## Kiểm tra quyền Google trước sự kiện
 
 Người phụ trách kỹ thuật kiểm tra OAuth trong Google Cloud đã ở In production và kết nối Google còn hoạt động. Trạng thái Testing có thể hết hạn quyền sau 7 ngày; xem docs/DEPLOY.md. Kiểm tra lại trên điện thoại, Zalo và Wi-Fi/4G của địa điểm trước khi phát mã.

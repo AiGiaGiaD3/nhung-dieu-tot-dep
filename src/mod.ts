@@ -16,6 +16,9 @@ import { compressCenter, cropPhoto, downloadBlob } from "./media";
 import QRCode from "qrcode";
 let state: any,
   tab = "overview";
+let pendingRefresh: Promise<void> | null = null,
+  refreshGeneration = 0,
+  viewEdited = false;
 let codes: any[] = JSON.parse(sessionStorage.getItem("ndtd-issued") || "[]");
 const root = $("#app");
 const tabs: Record<string, string> = {
@@ -54,7 +57,48 @@ function login() {
   };
 }
 async function render() {
-  state = await api("admin");
+  await refreshState(true);
+}
+function refreshState(force = false): Promise<void> {
+  if (pendingRefresh && !force) return pendingRefresh;
+  const generation = ++refreshGeneration;
+  const request = api("admin")
+    .then((next) => {
+      // A read started before a saved change must not replace the newer result.
+      if (generation !== refreshGeneration) return;
+      const changed = !state || state.version !== next.version;
+      state = next;
+      if (
+        force ||
+        (changed &&
+          !viewEdited &&
+          !document.querySelector('dialog[open], [aria-busy="true"]'))
+      )
+        draw();
+      else if (changed && $("#refresh-admin"))
+        $("#refresh-admin").textContent = "Có cập nhật · Làm mới";
+    })
+    .catch((error) => {
+      if (generation === refreshGeneration) throw error;
+    })
+    .finally(() => {
+      if (pendingRefresh === request) pendingRefresh = null;
+    });
+  pendingRefresh = request;
+  return request;
+}
+function refreshError(error: any) {
+  if (error.code === "AUTH" || !token()) {
+    ++refreshGeneration;
+    state = undefined;
+    saveSession(null);
+    login();
+  } else if ($("#refresh-admin"))
+    $("#refresh-admin").textContent = "Chưa cập nhật · Thử lại";
+  toast(errorText(error), true);
+}
+function draw() {
+  viewEdited = false;
   root.innerHTML = `${DEMO ? '<div class="demo-banner">Bản trải nghiệm · Mọi thay đổi chỉ nằm trên trình duyệt này</div>' : ""}<div class="admin-shell"><aside class="admin-sidebar"><a href="./" class="event-name">Những điều tốt đẹp<span>Không gian ban tổ chức</span></a>${Object.entries(
     tabs,
   )
@@ -64,14 +108,26 @@ async function render() {
     )
     .join(
       "",
-    )}<a href="./wall.html" target="_blank" rel="noopener">Mở bức tường ↗</a><button id="logout">Đăng xuất</button><div class="sidebar-bottom">Tri ân ngày Nhà giáo Việt Nam<br>20/11 · Bộ phận Đào tạo</div></aside><main class="admin-main"><div class="admin-heading"><div><h1>${tabs[tab]}</h1><p>Mỗi chi tiết nhỏ, cùng làm nên một sự kiện ấm áp.</p></div><span class="status-pill ${state.settings.open ? "" : "closed"}">● ${state.settings.open ? "Cổng gửi đang mở" : "Cổng gửi đang đóng"}</span></div><div id="admin-content"></div></main></div>`;
+    )}<button id="refresh-admin">Làm mới dữ liệu</button><a href="./wall.html" target="_blank" rel="noopener">Mở bức tường ↗</a><button id="logout">Đăng xuất</button><div class="sidebar-bottom">Tri ân ngày Nhà giáo Việt Nam<br>20/11 · Bộ phận Đào tạo</div></aside><main class="admin-main"><div class="admin-heading"><div><h1>${tabs[tab]}</h1><p>Mỗi chi tiết nhỏ, cùng làm nên một sự kiện ấm áp.</p></div><span class="status-pill ${state.settings.open ? "" : "closed"}">● ${state.settings.open ? "Cổng gửi đang mở" : "Cổng gửi đang đóng"}</span></div><div id="admin-content"></div></main></div>`;
   document.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach(
     (b) =>
       (b.onclick = () => {
+        if (!token()) {
+          refreshError(new Error("Phiên đã hết hạn. Vui lòng đăng nhập lại."));
+          return;
+        }
         tab = b.dataset.tab!;
-        void render().catch((e) => toast(errorText(e), true));
+        draw();
+        void refreshState().catch(refreshError);
       }),
   );
+  root.oninput = root.onchange = () => {
+    viewEdited = true;
+  };
+  $("#refresh-admin").onclick = (e) =>
+    void busy(e.currentTarget as HTMLButtonElement, () =>
+      render().catch(refreshError),
+    );
   $("#logout").onclick = logout;
   (({ overview, people, photos, pair, wishes, settings })[tab] || overview)();
   void loadPhotos();
@@ -167,7 +223,10 @@ function people() {
   };
   $("#people-search").oninput = draw;
   $("#import").onclick = importPeople;
-  $("#refresh-people").onclick = () => void render();
+  $("#refresh-people").onclick = (e) =>
+    void busy(e.currentTarget as HTMLButtonElement, () =>
+      render().catch(refreshError),
+    );
   draw();
 }
 function keepCodes(items: any[]) {

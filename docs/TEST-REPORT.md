@@ -32,6 +32,12 @@ Lượt 300 sau sửa cache (commit 7db9d08): **299/300 thành công, vẫn chư
 
 ## Ảnh kiểm tra
 
+### Cập nhật tốc độ tab quản trị — 05/11/2026
+
+Trước sửa, mỗi lần chọn tab đều chờ API admin rồi mới dựng giao diện. Sau sửa, tab hiển thị ngay từ dữ liệu trong bộ nhớ và đọc dữ liệu mới ở nền; các lần chuyển nhanh dùng chung một request đang chờ. Phản hồi cũ không ghi đè kết quả sau khi lưu, không tự làm mất nội dung đang nhập/lọc; phiên bị thu hồi chuyển về đăng nhập. Có nút làm mới chung.
+
+TypeScript đạt; 3 kịch bản demo hiện có và 3 kịch bản regression quản trị đều đạt (6/6). Bài regression giữ request backend chưa trả về trong khi chuyển cả 6 tab, xác nhận tiêu đề và nội dung đổi đồng bộ dưới 250ms mỗi tab, kiểm tra cập nhật lời mới, giữ nội dung đang sửa và thu hồi phiên. Lần cập nhật này chỉ thay frontend, không chạy lại bài tải ghi hoặc tạo fixture trên sự kiện thật.
+
 - screenshots/live/mobile-390x844.png
 - screenshots/live/wall-1920.png
 - screenshots/live/thiep-mau.png

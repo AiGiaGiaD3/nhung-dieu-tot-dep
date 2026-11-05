@@ -46,7 +46,7 @@ export async function api(
         result.error?.message || "Chưa thực hiện được thao tác.",
       );
       if (result.error?.code !== "BUSY")
-        throw Object.assign(e, { permanent: true });
+        throw Object.assign(e, { permanent: true, code: result.error?.code });
       throw e;
     } catch (e) {
       last = e;
