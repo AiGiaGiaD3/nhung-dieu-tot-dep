@@ -1,51 +1,39 @@
-# Kết quả kiểm thử Những điều tốt đẹp
+# Báo cáo nghiệm thu — 05/11/2026
 
-Tên ứng dụng đã đổi thành **Những điều tốt đẹp** theo yêu cầu đã duyệt.
+Ứng dụng: **Những điều tốt đẹp**. Website: https://aigiagiad3.github.io/nhung-dieu-tot-dep/
 
-## Đã chạy và đạt
+## Kiểm thử đã đạt
 
-- TypeScript: `tsc --noEmit` không lỗi.
-- Build Vite demo thành công, ba entry người tham gia / tường / mod.
-- Build Apps Script thành công. Bản bundle dùng verifier bcrypt đồng bộ; đã xử lý việc Apps Script không có timer trình duyệt.
-- **16/16 bài unit và backend mô phỏng đạt.** Có thêm kiểm tra cache giảm đọc Sheet và mã bị thu hồi không được dùng lại. Bao gồm ghép 2/3/10/100/300 người, không tự ghép và nhận đúng một lần; TSV và tên ảnh mơ hồ; phân quyền; ẩn danh; chống ghi trùng; giới hạn gửi; hết hạn; ghép lại; xoá không hoàn lượt; chữ ký phiên; giả mạo token; lỗi ghi Sheet và cleanup ảnh; giới hạn đăng nhập.
-- **3/3 kịch bản Playwright demo đạt** trên Chrome Windows. Bài live được skip có chủ đích vì chưa deploy, không phải kết quả pass live.
-- Luồng người tham gia: link riêng → mở phong thư → gửi ghi tên → người nhận thấy thư → tải PNG. Gửi thêm ẩn danh và nhập payload HTML độc hại: hiển thị như văn bản, không chạy script.
-- Luồng mod: nhập TSV từ Excel → upload nhiều ảnh theo mã/tên → ghép → kiểm tra mỗi người nhận một lần → CSV/QR → mở/đóng cổng → ẩn lời chúc → tường ở tab khác gỡ nội dung.
-- Trang chào, hộp thư, màn chiếu: kiểm tra console/page errors trong các kịch bản, trạng thái mã sai, reduced motion và kiểm tra không cuộn ngang ở 360px.
-- Thiệp PNG thực sự được tải và giải mã: rộng 1080px, cao tối thiểu 1350px. Đã sửa xuống dòng theo từ để không tách dấu/âm tiết tiếng Việt ở rìa.
-- Bức tường được chụp và kiểm tra đúng **1920×1080**, không vượt chiều cao màn hình. Có thêm ảnh viewport mobile đúng **390×844** và ảnh toàn trang.
-- Kiểm tra secret tĩnh trên nguồn public không phát hiện mẫu token/private key bị cấm.
-- 16 ảnh WebP + 1 JPEG Open Graph tổng **269.448 byte**, thấp hơn 1,5MB. Ảnh WebP lớn nhất là hero 44.132 byte; mọi nền dưới 250KB.
+- TypeScript không lỗi; Vite production build thành công với trang tham gia, tường, mod, quyền riêng tư và quy tắc tham gia.
+- **18/18 bài unit/backend mô phỏng đạt.** Bao phủ ghép đôi, phân quyền, mã/phiên, ẩn danh, XSS, quota gửi, idempotency, xoá không hoàn lượt, khoá/ghi nguyên tử, ảnh, cache chia phần cho dữ liệu lớn và phục hồi phần bị mất, thu hồi phiên và thử lại lỗi Google Sheets tạm thời mà không tạo thư trùng.
+- **3/3 kịch bản Playwright demo đạt** trên Chrome Windows; bài live được bỏ qua trong lượt demo rồi chạy riêng.
+- **1/1 kịch bản E2E trên website và backend thật đạt**, khoảng 2,3 phút ở lượt mới nhất: nhập 10 người từ Excel, 10 ảnh lô, ghép một-một không tự ghép, CSV, cổng gửi, link cá nhân, ảnh riêng từ Drive, ghi tên/ẩn danh, hộp thư, PNG, ẩn thư và tường cập nhật. Không có console/page error trong kịch bản.
+- Thiệp xuất thật rộng 1080px, cao tối thiểu 1350px; tường đúng 1920×1080; không cuộn ngang tại 360px; có screenshot mobile 390×844.
+- Đã dọn và đối soát sạch fixture sau E2E. Test tải dùng bộ fixture riêng và sẽ dọn khi hoàn tất.
+- OAuth bootstrap, Drive riêng, health và cập nhật deployment giữ nguyên URL đã được kiểm chứng.
+- GitHub Actions đã xuất bản thành công. Lấy API status với nonce để tránh phản hồi HTTP cũ báo queued.
+- Hai trang thông tin trả HTTP 200 và đã kiểm tra trên Chrome mobile không tràn ngang.
+- Nguồn public không phát hiện mẫu secret bị cấm; .env, .local, OAuth JSON và ảnh/dữ liệu nhân sự không được commit.
+- 16 WebP + JPEG Open Graph: 269.448 byte; WebP lớn nhất 44.132 byte. Không dùng logo vì chưa có file chính thức.
 
-## Ảnh để duyệt
+## Đo tải thực tế và các lỗi đã sửa
 
-Trong `screenshots/`:
+Các lần chuẩn bị tải đầu đã phát hiện quota đọc Sheets và tranh chấp bộ đếm đăng nhập. Đã thêm cache dữ liệu đã commit, khóa cache thay theo từng lần ghi, bộ đếm nhanh cho mã cá nhân và giữ giới hạn mật khẩu mod trong Properties. Đã sửa MIME gzip khi giải nén cache trong Apps Script và xác minh trực tiếp.
 
-- `00-trang-chao-1440.png`: trang chào desktop.
-- `01-trang-chao-390.png`: trang chào mobile toàn trang.
-- `02-phong-thu-390.png`: trước khi mở phong thư.
-- `03-nguoi-dong-hanh-390.png`: người được ghép.
-- `mobile-390x844.png`: khung mobile chính xác 390×844.
-- `04-viet-loi-chuc-390.png`: viết và chọn ghi tên/ẩn danh.
-- `05-gui-thanh-cong-390.png`: gửi thành công.
-- `06-hop-thu-390.png`: hộp thư.
-- `07-buc-tuong-1920.png`: màn chiếu 1920×1080.
-- `08-mod-tong-quan-1440.png`: tổng quan mod.
-- `thiep-mau.png`: PNG do chính ứng dụng xuất.
+Lượt 100 người gửi trong 10 phút sau sửa cache: **99/100 thành công, không đạt tiêu chí 100%**. Có 3.480 lượt đọc tường, không lỗi đọc; p50 gửi thành công 2.211ms, p95 3.452ms. Một lần batchUpdate báo service currently unavailable. Đã bổ sung ánh xạ lỗi tạm thời thành BUSY để client thử lại bằng cùng requestId, kèm bài regression không tạo thư trùng. Bộ dữ liệu của lượt này đã dọn sạch.
 
-## Chưa chạy — phải làm ở Bước 3
+Lượt kiểm chứng mới với 300 người/10 phút đang chạy. Chỉ công bố số liệu cuối cùng sau khi đối soát và cleanup. Test API dùng client Node có timeout/retry; không tương đương 300 thiết bị vật lý hoặc bảo đảm hạ tầng Google ở mọi thời điểm.
 
-- Google Sheet/Drive/Apps Script thật; bootstrap OAuth, CORS/redirect từ GitHub Pages, quyền ảnh riêng và API executable.
-- GitHub Actions Pages, kiểm tra URL backend không đổi sau redeploy.
-- Bộ live E2E và bài tải 100 người trong 10 phút, 100/300 người đồng thời. Backend mock không chứng minh được quota hay throughput Google.
-- iPhone/Safari, Android, Zalo, preview OG thực tế và mạng Wi-Fi sự kiện/4G.
-- QR public dùng in poster. QR trong demo localhost chỉ dùng kiểm tra bố cục, không phải QR để phát cho người tham gia.
-- Logo chính thức chưa có, nên chưa chèn logo.
+## Ảnh kiểm tra
 
-## Cập nhật triển khai 05/11/2026
+- screenshots/live/mobile-390x844.png
+- screenshots/live/wall-1920.png
+- screenshots/live/thiep-mau.png
+- screenshots/privacy-390.png và screenshots/terms-390.png
+- Các ảnh demo ở screenshots/; ảnh live không đưa lên repository.
 
-- GitHub CLI và Google OAuth đã kết nối; Sheet và thư mục ảnh riêng chỉ có quyền chủ sở hữu.
-- Backend đã bootstrap qua API chủ sở hữu và health trả initialized. Đã cập nhật backend một lần, đối chiếu URL không thay đổi.
-- Cả ba trang Pages trả HTTP 200; Chrome không thấy banner demo, lỗi console hay tràn ngang trong kiểm tra mở trang.
-- Lần tải đầu tiên tạo 100 người mẫu rồi lỗi ở bước chuẩn bị phiên, trước khi gửi. Đã dọn đủ 100 bản ghi và ảnh mẫu. Đây là lần thử không đạt, không tính thành chứng nhận tải.
-- Đã bổ sung cache trạng thái đã commit, đang chạy lại bài tải 100 người/10 phút. Luồng E2E thật và số liệu tải sẽ được cập nhật khi có kết quả.
+## Việc cần chủ tài khoản/thiết bị thật xác nhận
+
+- OAuth còn Testing ở lần người dùng xác nhận gần nhất. Đang hoàn thiện Branding để chuyển In production; cần chủ tài khoản tự xác nhận và đăng nhập Google lại.
+- Chưa kiểm tra trên thiết bị iPhone/Safari, Android/Zalo hoặc Wi-Fi/4G tại địa điểm sự kiện. Chrome tự động không thay thế các bước đó.
+- Chưa chứng nhận gửi 100/300 yêu cầu ghi ngay trong cùng một giây; kịch bản mục tiêu là phân bố gửi trong 10 phút với các lượt đọc tường đồng thời.

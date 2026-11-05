@@ -32,7 +32,7 @@ npm run build:demo
 
 Playwright tự dùng Chrome tại đường dẫn Windows chuẩn nếu có, nếu không thì dùng Chromium đã cài. Có thể đặt `CHROME_PATH` cho vị trí khác. Ảnh demo ở `screenshots/`; trace lỗi ở `test-results/`, không được commit. Bài live tự bỏ qua khi chưa có LIVE_URL.
 
-16 bài unit/integration kiểm tra thuật toán, phân quyền, API ẩn danh, retry, lịch, ghi Sheet nguyên tử qua mock, token và ảnh. Ba kịch bản E2E demo bao phủ người gửi, người nhận, mod, XSS, PNG, ảnh lô, QR, 360px, mobile và màn chiếu. Xem `docs/TEST-REPORT.md` để biết kết quả và giới hạn.
+18 bài unit/integration kiểm tra thuật toán, phân quyền, API ẩn danh, retry, lịch, ghi Sheet nguyên tử qua mock, token và ảnh. Ba kịch bản E2E demo bao phủ người gửi, người nhận, mod, XSS, PNG, ảnh lô, QR, 360px, mobile và màn chiếu. Xem `docs/TEST-REPORT.md` để biết kết quả và giới hạn.
 
 ## Deploy
 

@@ -80,7 +80,19 @@ function cacheState(key, state) {
     const encoded = Utilities.base64Encode(
       Utilities.gzip(Utilities.newBlob(JSON.stringify(state))).getBytes(),
     );
-    if (encoded.length < 95000) cache().put(key, encoded, 600);
+    if (encoded.length < 90000) cache().put(key, encoded, 600);
+    else {
+      const count = Math.ceil(encoded.length / 90000);
+      if (count > 20) return;
+      for (let i = 0; i < count; i++)
+        cache().put(
+          key + ":" + i,
+          encoded.slice(i * 90000, (i + 1) * 90000),
+          600,
+        );
+      // Publish the manifest only after all pieces are present.
+      cache().put(key, JSON.stringify({ chunks: count }), 600);
+    }
   } catch (error) {
     /* Cache is optional; the committed Sheet is authoritative. */
     try {
@@ -91,22 +103,37 @@ function cacheState(key, state) {
     } catch {}
   }
 }
+function cachedState(key) {
+  let encoded = cache().get(key);
+  if (!encoded) return null;
+  if (encoded.startsWith("{")) {
+    const count = JSON.parse(encoded).chunks;
+    if (!Number.isInteger(count) || count < 1 || count > 20) return null;
+    const chunks = [];
+    for (let i = 0; i < count; i++) {
+      const chunk = cache().get(key + ":" + i);
+      if (!chunk) return null;
+      chunks.push(chunk);
+    }
+    encoded = chunks.join("");
+  }
+  return JSON.parse(
+    Utilities.ungzip(
+      Utilities.newBlob(
+        Utilities.base64Decode(encoded),
+        "application/x-gzip",
+        "state.json.gz",
+      ),
+    ).getDataAsString(),
+  );
+}
 function readState() {
   const sheetId = props().getProperty("SHEET_ID");
   if (!sheetId) fail("UNINITIALIZED", "Sự kiện chưa được khởi tạo.");
   const key = props().getProperty("STATE_CACHE_KEY") || "state:initial";
   try {
-    const encoded = cache().get(key);
-    if (encoded)
-      return JSON.parse(
-        Utilities.ungzip(
-          Utilities.newBlob(
-            Utilities.base64Decode(encoded),
-            "application/x-gzip",
-            "state.json.gz",
-          ),
-        ).getDataAsString(),
-      );
+    const cached = cachedState(key);
+    if (cached) return cached;
   } catch (error) {
     /* Missing/evicted/corrupt cache falls back to the Sheet. */
     try {
@@ -175,12 +202,13 @@ function writeState(s) {
     props().getProperty("SHEET_ID"),
   );
   const stateKey = "state:" + Utilities.getUuid();
+  // Warm the complete committed snapshot before readers can discover its key.
+  cacheState(stateKey, s);
   props().setProperties({
     ROW_COUNT: String(rows.length),
     GRID_ROWS: String(Math.max(grid, total)),
     STATE_CACHE_KEY: stateKey,
   });
-  cacheState(stateKey, s);
   cache().remove("wall");
 }
 function limited(key, max) {
@@ -297,16 +325,9 @@ export function ownerInfo() {
     stateCacheError = "";
   if (encodedState) {
     try {
-      JSON.parse(
-        Utilities.ungzip(
-          Utilities.newBlob(
-            Utilities.base64Decode(encodedState),
-            "application/x-gzip",
-            "state.json.gz",
-          ),
-        ).getDataAsString(),
+      stateCacheReadable = !!cachedState(
+        props().getProperty("STATE_CACHE_KEY") || "state:initial",
       );
-      stateCacheReadable = true;
     } catch (error) {
       stateCacheError = String(error.message).slice(0, 500);
     }

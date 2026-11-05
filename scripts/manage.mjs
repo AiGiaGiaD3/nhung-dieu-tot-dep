@@ -197,7 +197,16 @@ async function main() {
     );
     const fixtures = await seed(count, false);
     const token = await modToken();
-    const report = { count, duration, results: [], reads: 0, readErrors: 0 };
+    const report = {
+      count,
+      duration,
+      startedAt: new Date().toISOString(),
+      sourceRevision: run("git", ["rev-parse", "HEAD"], { capture: true }),
+      results: [],
+      reads: 0,
+      readErrors: 0,
+      readErrorCodes: {},
+    };
     let poll = true;
     let readers = [];
     const startReaders = () =>
@@ -208,8 +217,10 @@ async function main() {
             try {
               await call("wall");
               report.reads++;
-            } catch {
+            } catch (error) {
               report.readErrors++;
+              const code = error.code || "NETWORK";
+              report.readErrorCodes[code] = (report.readErrorCodes[code] || 0) + 1;
             }
             await new Promise((r) =>
               setTimeout(r, 15000 + Math.random() * 2000),
@@ -293,7 +304,11 @@ async function main() {
       poll = false;
       await Promise.all(readers);
       await call("cleanDemo", {}, token);
+      const after = await call("admin", {}, token);
+      if (after.people.length || after.wishes.length || after.assignments.length || after.receipts.length || after.settings.open)
+        throw new Error("Dọn dữ liệu tải chưa sạch hoặc cổng còn mở; cần kiểm tra trước khi dùng thật.");
       await fs.rm(".local/fixtures.json", { force: true });
+      console.log("Đã đối soát sạch dữ liệu tải và đóng cổng gửi.");
     }
     return;
   }

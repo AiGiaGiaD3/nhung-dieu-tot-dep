@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import vm from "node:vm";
 import fs from "node:fs/promises";
-import { createHash, createHmac, randomUUID } from "node:crypto";
+import { createHash, createHmac, randomUUID, randomBytes } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { build } from "esbuild";
 import { gzipSync, gunzipSync } from "node:zlib";
@@ -329,4 +329,28 @@ test("temporary Sheets failure retries with the same wish id without duplicates"
   assert.equal(sent.ok, true);
   assert.equal(replay.data.id, sent.data.id);
   assert.equal(m.call("wall").total, 1);
+});
+
+test("large committed state uses cache pieces and recovers a missing piece from Sheet", () => {
+  const m = mock();
+  const mod = m.call("modLogin", { password: "correct-password" }).token;
+  const people = Array.from({ length: 500 }, (_, i) => ({
+    employee: `BIG${i}`,
+    name: randomBytes(50).toString("hex"),
+    department: randomBytes(50).toString("hex"),
+    codeHash: randomBytes(32).toString("hex"),
+  }));
+  m.call("import", { people }, mod);
+  const key = m.properties.get("STATE_CACHE_KEY");
+  const manifest = JSON.parse(m.cache.get(key));
+  assert(manifest.chunks >= 2);
+  for (let i = 0; i < manifest.chunks; i++)
+    assert(m.cache.get(key + ":" + i).length <= 90000);
+  const reads = m.reads();
+  assert.equal(m.call("admin", {}, mod).people.length, 500);
+  assert.equal(m.reads(), reads);
+  m.cache.delete(key + ":0");
+  assert.equal(m.call("admin", {}, mod).people[499].name, people[499].name);
+  assert.equal(m.reads(), reads + 1);
+  assert(m.cache.get(key + ":0"));
 });
